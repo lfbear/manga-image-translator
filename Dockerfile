@@ -1,13 +1,13 @@
 FROM pytorch/pytorch:latest
 
 WORKDIR /app
-
-RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+ARG DEBIAN_FRONTEND=noninteractive
 # Assume root to install required dependencies
-RUN apt-get install -y git g++ ffmpeg libsm6 libxext6 libvulkan-dev && \
-    pip install git+https://github.com/kodalli/pydensecrf.git
+RUN apt-get update && \
+    apt-get install -y git g++ ffmpeg libsm6 libxext6 libvulkan-dev wget curl vim
 
+#RUN pip install git+https://github.com/lucasb-eyer/pydensecrf.git
+RUN conda install -c conda-forge pydensecrf
 # Install pip dependencies
 
 COPY requirements.txt /app/requirements.txt
@@ -15,8 +15,13 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 RUN pip install torchvision --force-reinstall
 
-RUN apt-get remove -y g++ && \
-    apt-get autoremove -y
+# RUN apt-get remove -y g++ && \
+#     apt-get autoremove -y
+
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb
+RUN dpkg -i cuda-keyring_1.1-1_all.deb
+RUN apt-get update
+RUN apt-get -y install cuda
 
 # Copy app
 COPY . /app
